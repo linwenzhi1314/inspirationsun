@@ -121,7 +121,7 @@ export default async function Home() {
 						{ARTICLE_CATEGORIES.map((category) => (
 							<Link
 								key={category.key}
-								href={`/category/${category.key}`}
+								href={`/categories/${category.key}`}
 								className="group bg-gray-50 rounded-lg p-6 hover:bg-gray-100 transition-colors border border-gray-200"
 							>
 								<div className="flex items-start gap-4">

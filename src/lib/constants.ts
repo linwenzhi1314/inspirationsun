@@ -50,3 +50,7 @@ export const ARTICLE_CATEGORIES: CategoryConfig[] = [
 export const getCategoryConfig = (category: ArticleCategory): CategoryConfig => {
   return ARTICLE_CATEGORIES.find(c => c.key === category) || ARTICLE_CATEGORIES[0];
 };
+
+export const isValidCategory = (category: string): category is ArticleCategory => {
+  return ARTICLE_CATEGORIES.some(c => c.key === category);
+};
