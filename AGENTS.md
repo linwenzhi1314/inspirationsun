@@ -1,65 +1,136 @@
-# 项目上下文
+# AGENTS.md
 
-### 版本技术栈
+## 项目概述
+
+个人博客网站，支持内容发布和一键同步到 X (Twitter)。
+
+## 技术栈
 
 - **Framework**: Next.js 16 (App Router)
 - **Core**: React 19
 - **Language**: TypeScript 5
 - **UI 组件**: shadcn/ui (基于 Radix UI)
 - **Styling**: Tailwind CSS 4
+- **Database**: Supabase (PostgreSQL)
+- **External API**: Twitter/X API v2
 
 ## 目录结构
 
 ```
-├── public/                 # 静态资源
-├── scripts/                # 构建与启动脚本
-│   ├── build.sh            # 构建脚本
-│   ├── dev.sh              # 开发环境启动脚本
-│   ├── prepare.sh          # 预处理脚本
-│   └── start.sh            # 生产环境启动脚本
 ├── src/
-│   ├── app/                # 页面路由与布局
-│   ├── components/ui/      # Shadcn UI 组件库
-│   ├── hooks/              # 自定义 Hooks
-│   ├── lib/                # 工具库
-│   │   └── utils.ts        # 通用工具函数 (cn)
-│   └── server.ts           # 自定义服务端入口
-├── next.config.ts          # Next.js 配置
-├── package.json            # 项目依赖管理
-└── tsconfig.json           # TypeScript 配置
+│   ├── app/                    # Next.js App Router
+│   │   ├── api/                # API 路由
+│   │   │   ├── articles/       # 文章 API
+│   │   │   ├── admin/          # 管理后台 API
+│   │   │   └── twitter/        # Twitter 集成 API
+│   │   ├── articles/           # 文章详情页
+│   │   ├── admin/              # 管理后台页面
+│   │   └── page.tsx            # 首页
+│   ├── components/             # React 组件
+│   ├── lib/                    # 工具库
+│   │   └── twitter.ts          # Twitter API 集成
+│   └── storage/                # 数据存储
+│       └── database/           # 数据库相关
+│           ├── shared/         # 共享模型
+│           │   └── schema.ts   # 数据库 schema
+│           └── supabase-client.ts
+├── public/                     # 静态资源
+└── DESIGN.md                   # 设计规范
 ```
 
-- 项目文件（如 app 目录、pages 目录、components 等）默认初始化到 `src/` 目录下。
+## 核心功能
 
-## 包管理规范
+### 1. 文章管理
+- 创建、编辑、发布文章
+- 文章列表展示
+- 文章详情页
+- 支持封面图、摘要
 
-**仅允许使用 pnpm** 作为包管理器，**严禁使用 npm 或 yarn**。
-**常用命令**：
-- 安装依赖：`pnpm add <package>`
-- 安装开发依赖：`pnpm add -D <package>`
-- 安装所有依赖：`pnpm install`
-- 移除依赖：`pnpm remove <package>`
+### 2. Twitter 集成
+- OAuth 2.0 认证
+- 自动同步发布
+- Token 自动刷新
+- 发布状态追踪
 
-## 开发规范
+## 数据库设计
 
-### 编码规范
+### articles 表
+- `id`: 主键
+- `title`: 标题
+- `slug`: URL 别名（唯一）
+- `content`: 正文内容
+- `excerpt`: 摘要
+- `cover_image`: 封面图 URL
+- `published`: 是否发布
+- `twitter_post_id`: Twitter 推文 ID
+- `twitter_posted_at`: 推文发布时间
+- `created_at`, `updated_at`: 时间戳
 
-- 默认按 TypeScript `strict` 心智写代码；优先复用当前作用域已声明的变量、函数、类型和导入，禁止引用未声明标识符或拼错变量名。
-- 禁止隐式 `any` 和 `as any`；函数参数、返回值、解构项、事件对象、`catch` 错误在使用前应有明确类型或先完成类型收窄，并清理未使用的变量和导入。
+### profiles 表
+- `id`: 主键
+- `twitter_id`: Twitter 用户 ID
+- `twitter_username`: Twitter 用户名
+- `twitter_access_token`: 访问令牌
+- `twitter_refresh_token`: 刷新令牌
+- `twitter_token_expires_at`: 令牌过期时间
+- `created_at`, `updated_at`: 时间戳
 
-### next.config 配置规范
+## API 端点
 
-- 配置的路径不要写死绝对路径，必须使用 path.resolve(__dirname, ...)、import.meta.dirname 或 process.cwd() 动态拼接。
+### 公开 API
+- `GET /api/articles` - 获取已发布文章列表
+- `GET /api/articles/[slug]` - 获取文章详情
 
-### Hydration 问题防范
+### 管理 API
+- `GET /api/admin/articles` - 获取所有文章（含未发布）
+- `POST /api/admin/articles` - 创建文章
 
-1. 严禁在 JSX 渲染逻辑中直接使用 typeof window、Date.now()、Math.random() 等动态数据。**必须使用 'use client' 并配合 useEffect + useState 确保动态内容仅在客户端挂载后渲染**；同时严禁非法 HTML 嵌套（如 <p> 嵌套 <div>）。
-2. **禁止使用 head 标签**，优先使用 metadata，详见文档：https://nextjs.org/docs/app/api-reference/functions/generate-metadata
-   1. 三方 CSS、字体等资源可在 `globals.css` 中顶部通过 `@import` 引入或使用 next/font
-   2. preload, preconnect, dns-prefetch 通过 ReactDOM 的 preload、preconnect、dns-prefetch 方法引入
-   3. json-ld 可阅读 https://nextjs.org/docs/app/guides/json-ld
+### Twitter API
+- `GET /api/twitter/auth` - 获取 Twitter 授权链接
+- `GET /api/twitter/callback` - OAuth 回调处理
+- `POST /api/twitter/tweet` - 发布推文
 
-## UI 设计与组件规范 (UI & Styling Standards)
+## 环境变量
 
-- 模板默认预装核心组件库 `shadcn/ui`，位于`src/components/ui/`目录下
-- Next.js 项目**必须默认**采用 shadcn/ui 组件、风格和规范，**除非用户指定用其他的组件和规范。**
+### 必需配置
+- `TWITTER_CLIENT_ID` - Twitter App Client ID
+- `TWITTER_CLIENT_SECRET` - Twitter App Client Secret
+
+### 自动注入
+- `COZE_SUPABASE_URL` - Supabase 项目 URL
+- `COZE_SUPABASE_ANON_KEY` - Supabase 匿名密钥
+- `COZE_SUPABASE_SERVICE_ROLE_KEY` - Supabase 服务角色密钥
+- `COZE_PROJECT_DOMAIN_DEFAULT` - 项目域名
+
+## 开发流程
+
+1. 创建文章：访问 `/admin/new`
+2. 连接 Twitter：访问 `/admin` 并点击连接按钮
+3. 发布文章时勾选"同步到 X"
+
+## Twitter API 配置步骤
+
+1. 访问 [Twitter Developer Portal](https://developer.twitter.com/)
+2. 创建新的 Twitter App
+3. 启用 OAuth 2.0
+4. 设置回调 URL: `https://your-domain/api/twitter/callback`
+5. 复制 Client ID 和 Client Secret 到环境变量
+
+## 构建与部署
+
+```bash
+# 开发环境
+pnpm install
+pnpm run dev
+
+# 生产构建
+pnpm run build
+pnpm run start
+```
+
+## 注意事项
+
+- Twitter 推文字符限制为 280 字符
+- Twitter Token 有效期为 2 小时，需要自动刷新
+- 文章 slug 必须唯一
+- 所有数据库操作都通过 Supabase Client
