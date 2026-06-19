@@ -7,7 +7,7 @@ export async function GET() {
 
     const { data, error } = await client
       .from('articles')
-      .select('id, title, slug, excerpt, published, created_at, updated_at, twitter_post_id')
+      .select('id, title, slug, excerpt, category, published, created_at, updated_at, twitter_post_id')
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -27,7 +27,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { title, slug, content, excerpt, cover_image, published, sync_to_twitter } = body;
+    const { title, slug, content, excerpt, cover_image, category, published, sync_to_twitter } = body;
 
     if (!title || !slug || !content) {
       return NextResponse.json(
@@ -61,6 +61,7 @@ export async function POST(request: Request) {
         content,
         excerpt,
         cover_image,
+        category: category || 'signal_capture',
         published,
       })
       .select()

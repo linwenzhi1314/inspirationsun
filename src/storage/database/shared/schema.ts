@@ -17,6 +17,7 @@ export const articles = pgTable(
 		content: text("content").notNull(),
 		excerpt: varchar("excerpt", { length: 500 }),
 		cover_image: varchar("cover_image", { length: 500 }),
+		category: varchar("category", { length: 50 }).default('signal_capture').notNull(),
 		published: boolean("published").default(false).notNull(),
 		twitter_post_id: varchar("twitter_post_id", { length: 100 }),
 		twitter_posted_at: timestamp("twitter_posted_at", { withTimezone: true }),
@@ -25,6 +26,7 @@ export const articles = pgTable(
 	},
 	(table) => [
 		index("articles_slug_idx").on(table.slug),
+		index("articles_category_idx").on(table.category),
 		index("articles_published_idx").on(table.published),
 		index("articles_created_at_idx").on(table.created_at),
 	]

@@ -7,7 +7,7 @@ export async function GET() {
 
     const { data, error } = await client
       .from('articles')
-      .select('id, title, slug, excerpt, cover_image, published, created_at, updated_at')
+      .select('id, title, slug, excerpt, cover_image, category, published, created_at, updated_at')
       .eq('published', true)
       .order('created_at', { ascending: false })
       .limit(20);

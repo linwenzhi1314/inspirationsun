@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { ARTICLE_CATEGORIES, type ArticleCategory } from '@/lib/constants';
 
 export default function NewArticlePage() {
 	const router = useRouter();
@@ -11,6 +12,7 @@ export default function NewArticlePage() {
 	const [content, setContent] = useState('');
 	const [excerpt, setExcerpt] = useState('');
 	const [coverImage, setCoverImage] = useState('');
+	const [category, setCategory] = useState<ArticleCategory>('signal_capture');
 	const [published, setPublished] = useState(false);
 	const [syncToTwitter, setSyncToTwitter] = useState(false);
 	const [loading, setLoading] = useState(false);
@@ -53,6 +55,7 @@ export default function NewArticlePage() {
 					content,
 					excerpt,
 					cover_image: coverImage,
+					category,
 					published,
 					sync_to_twitter: syncToTwitter,
 				}),
@@ -103,8 +106,35 @@ export default function NewArticlePage() {
 			<main className="max-w-4xl mx-auto px-6 py-8">
 				<form onSubmit={handleSubmit} className="space-y-6">
 					<div className="bg-white rounded-lg border border-gray-200 p-6">
-						{/* 标题 */}
+						{/* 文章分类 */}
 						<div>
+							<label className="block text-sm font-medium text-gray-700 mb-2">
+								文章分类 *
+							</label>
+							<div className="grid grid-cols-2 gap-3">
+								{ARTICLE_CATEGORIES.map((cat) => (
+									<button
+										key={cat.key}
+										type="button"
+										onClick={() => setCategory(cat.key)}
+										className={`flex items-start gap-3 p-4 rounded-lg border transition-colors ${
+											category === cat.key
+												? 'border-blue-500 bg-blue-50'
+												: 'border-gray-200 hover:border-gray-300'
+										}`}
+									>
+										<span className="text-2xl">{cat.icon}</span>
+										<div className="text-left">
+											<div className="font-medium text-gray-900">{cat.label}</div>
+											<div className="text-xs text-gray-500 mt-1">{cat.description}</div>
+										</div>
+									</button>
+								))}
+							</div>
+						</div>
+
+						{/* 标题 */}
+						<div className="mt-6">
 							<label className="block text-sm font-medium text-gray-700 mb-2">
 								文章标题 *
 							</label>

@@ -2,10 +2,11 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
+import { ARTICLE_CATEGORIES, getCategoryConfig, type ArticleCategory } from '@/lib/constants';
 
 export const metadata: Metadata = {
-	title: '我的个人博客 - 分享思考与技术',
-	description: '一个专注于分享技术见解和个人成长的空间',
+	title: '混沌中的探路者 - 用敏感捕捉信号，用跨界解码规律',
+	description: '用多学科之眼，翻译混沌世界；用实战之躯，验证底层规律。',
 };
 
 interface Article {
@@ -14,6 +15,7 @@ interface Article {
 	slug: string;
 	excerpt: string | null;
 	cover_image: string | null;
+	category: ArticleCategory;
 	published: boolean;
 	created_at: string;
 	updated_at: string;
@@ -42,93 +44,181 @@ async function getArticles(): Promise<Article[]> {
 export default async function Home() {
 	const articles = await getArticles();
 
+	// 按分类组织文章
+	const articlesByCategory = ARTICLE_CATEGORIES.reduce((acc, cat) => {
+		acc[cat.key] = articles.filter(a => a.category === cat.key).slice(0, 3);
+		return acc;
+	}, {} as Record<ArticleCategory, Article[]>);
+
 	return (
 		<div className="min-h-screen bg-white">
-			{/* 头部导航 */}
-			<header className="border-b border-gray-200">
-				<div className="max-w-4xl mx-auto px-6 py-8">
-					<div className="flex items-center justify-between">
-						<div>
-							<h1 className="text-2xl font-bold text-gray-900">
-								我的博客
-							</h1>
-							<p className="text-gray-600 mt-1">
-								分享思考与技术
-							</p>
-						</div>
-						<nav className="flex gap-6">
-							<Link
-								href="/"
-								className="text-gray-600 hover:text-gray-900 transition-colors"
-							>
+			{/* 英雄区域 - 核心定位 */}
+			<header className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
+				<div className="max-w-5xl mx-auto px-6 py-20">
+					{/* 顶部导航 */}
+					<nav className="flex items-center justify-between mb-16">
+						<div className="text-xl font-bold">混沌中的探路者</div>
+						<div className="flex gap-6">
+							<Link href="/" className="text-gray-300 hover:text-white transition-colors">
 								首页
 							</Link>
-							<Link
-								href="/admin"
-								className="text-gray-600 hover:text-gray-900 transition-colors"
-							>
+							<Link href="/about" className="text-gray-300 hover:text-white transition-colors">
+								关于我
+							</Link>
+							<Link href="/admin" className="text-gray-300 hover:text-white transition-colors">
 								管理
 							</Link>
-						</nav>
+						</div>
+					</nav>
+
+					{/* 核心标语 */}
+					<div className="text-center mb-16">
+						<h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
+							用敏感捕捉信号，用跨界解码规律
+						</h1>
+						<p className="text-xl text-gray-300 mb-8">
+							用实战之躯，验证底层规律
+						</p>
+						<div className="inline-flex items-center px-4 py-2 bg-white/10 rounded-full text-sm">
+							<span className="mr-2">🎯</span>
+							混沌直觉的系统化生存——一个高敏感跨界者的认知实验手册
+						</div>
+					</div>
+
+					{/* 三个层次展示 */}
+					<div className="grid md:grid-cols-3 gap-8">
+						<div className="bg-white/5 backdrop-blur-sm rounded-lg p-6 border border-white/10">
+							<div className="text-3xl mb-3">🌊</div>
+							<h3 className="text-lg font-semibold mb-2">高敏感体质</h3>
+							<p className="text-gray-400 text-sm">
+								捕捉别人忽略的"信号"——气场、情绪、能量波动
+							</p>
+						</div>
+						<div className="bg-white/5 backdrop-blur-sm rounded-lg p-6 border border-white/10">
+							<div className="text-3xl mb-3">🔮</div>
+							<h3 className="text-lg font-semibold mb-2">跨界整合者</h3>
+							<p className="text-gray-400 text-sm">
+								融合物理、心理、行为经济学的"元认知"框架
+							</p>
+						</div>
+						<div className="bg-white/5 backdrop-blur-sm rounded-lg p-6 border border-white/10">
+							<div className="text-3xl mb-3">⚡</div>
+							<h3 className="text-lg font-semibold mb-2">直觉逆袭者</h3>
+							<p className="text-gray-400 text-sm">
+								混沌直觉+系统验证，在实战中赚到过钱
+							</p>
+						</div>
 					</div>
 				</div>
 			</header>
 
 			{/* 主要内容 */}
-			<main className="max-w-4xl mx-auto px-6 py-12">
-				{articles.length === 0 ? (
+			<main className="max-w-5xl mx-auto px-6 py-16">
+				{/* 四个核心栏目 */}
+				<div className="mb-20">
+					<h2 className="text-2xl font-bold text-gray-900 mb-8">内容栏目</h2>
+					<div className="grid md:grid-cols-2 gap-6">
+						{ARTICLE_CATEGORIES.map((category) => (
+							<Link
+								key={category.key}
+								href={`/category/${category.key}`}
+								className="group bg-gray-50 rounded-lg p-6 hover:bg-gray-100 transition-colors border border-gray-200"
+							>
+								<div className="flex items-start gap-4">
+									<div className="text-3xl">{category.icon}</div>
+									<div className="flex-1">
+										<h3 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+											{category.label}
+										</h3>
+										<p className="text-gray-600 text-sm">
+											{category.description}
+										</p>
+										<div className="mt-3 text-sm text-gray-500">
+											{(articlesByCategory[category.key] as Article[]).length} 篇文章
+										</div>
+									</div>
+								</div>
+							</Link>
+						))}
+					</div>
+				</div>
+
+				{/* 最新文章 */}
+				{articles.length > 0 && (
+					<div>
+						<h2 className="text-2xl font-bold text-gray-900 mb-8">最新文章</h2>
+						<div className="space-y-6">
+							{articles.slice(0, 5).map((article) => {
+								const categoryConfig = getCategoryConfig(article.category);
+								return (
+									<article
+										key={article.id}
+										className="group border-b border-gray-100 pb-6 last:border-0"
+									>
+										<Link href={`/articles/${article.slug}`}>
+											<div className="flex items-start gap-4">
+												<div className="flex-1">
+													<div className="flex items-center gap-3 mb-2">
+														<span className="text-sm">{categoryConfig.icon}</span>
+														<span className="text-xs text-gray-500">{categoryConfig.label}</span>
+													</div>
+													<h3 className="text-xl font-semibold text-gray-900 group-hover:text-blue-600 transition-colors mb-2">
+														{article.title}
+													</h3>
+													{article.excerpt && (
+														<p className="text-gray-600 line-clamp-2 mb-2">
+															{article.excerpt}
+														</p>
+													)}
+													<time className="text-sm text-gray-500">
+														{formatDistanceToNow(new Date(article.created_at), {
+															addSuffix: true,
+															locale: zhCN,
+														})}
+													</time>
+												</div>
+											</div>
+										</Link>
+									</article>
+								);
+							})}
+						</div>
+					</div>
+				)}
+
+				{articles.length === 0 && (
 					<div className="text-center py-20">
-						<div className="text-gray-400 text-lg">
+						<div className="text-gray-400 text-lg mb-4">
 							还没有发布任何文章
 						</div>
-						<p className="text-gray-500 mt-2">
-							敬请期待...
+						<p className="text-gray-500">
+							混沌中的实验即将开始...
 						</p>
-					</div>
-				) : (
-					<div className="space-y-8">
-						{articles.map((article) => (
-							<article
-								key={article.id}
-								className="group border-b border-gray-100 pb-8 last:border-0"
-							>
-								<Link href={`/articles/${article.slug}`}>
-									{article.cover_image && (
-										<div className="mb-4 overflow-hidden rounded-lg">
-											<img
-												src={article.cover_image}
-												alt={article.title}
-												className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-											/>
-										</div>
-									)}
-									<h2 className="text-xl font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
-										{article.title}
-									</h2>
-									{article.excerpt && (
-										<p className="text-gray-600 mt-2 line-clamp-2">
-											{article.excerpt}
-										</p>
-									)}
-									<div className="flex items-center gap-4 mt-3 text-sm text-gray-500">
-										<time>
-											{formatDistanceToNow(new Date(article.created_at), {
-												addSuffix: true,
-												locale: zhCN,
-											})}
-										</time>
-									</div>
-								</Link>
-							</article>
-						))}
 					</div>
 				)}
 			</main>
 
 			{/* 页脚 */}
-			<footer className="border-t border-gray-200 mt-20">
-				<div className="max-w-4xl mx-auto px-6 py-8 text-center text-gray-500">
-					<p>© 2024 我的博客. All rights reserved.</p>
+			<footer className="border-t border-gray-200 bg-gray-50">
+				<div className="max-w-5xl mx-auto px-6 py-12">
+					<div className="text-center mb-8">
+						<p className="text-gray-700 font-medium mb-2">
+							"我是那个替你把混沌世界翻译成清醒决策的探路者。"
+						</p>
+						<p className="text-gray-500 text-sm">
+							用多学科之眼，翻译混沌世界；用实战之躯，验证底层规律。
+						</p>
+					</div>
+					<div className="flex justify-center gap-8 text-sm text-gray-600">
+						<Link href="/" className="hover:text-gray-900 transition-colors">首页</Link>
+						<Link href="/about" className="hover:text-gray-900 transition-colors">关于我</Link>
+						<Link href="/admin" className="hover:text-gray-900 transition-colors">管理</Link>
+					</div>
+					<div className="text-center mt-8 pt-8 border-t border-gray-200">
+						<p className="text-gray-500 text-sm">
+							© 2024 混沌中的探路者. All rights reserved.
+						</p>
+					</div>
 				</div>
 			</footer>
 		</div>
