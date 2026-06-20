@@ -30,14 +30,10 @@ export async function POST(request: NextRequest) {
       .from('settings')
       .select('value')
       .eq('key', 'admin_password')
-      .single();
+      .maybeSingle();
 
-    if (fetchError && fetchError.code !== 'PGRST116') {
-      console.error('获取密码失败:', fetchError);
-      return NextResponse.json({ error: '获取密码失败' }, { status: 500 });
-    }
-
-    const storedPassword = result?.value || 'admin123';
+    // 使用默认密码如果数据库中没有记录
+    const storedPassword = (!fetchError && result?.value) ? result.value : 'admin123';
 
     // 验证当前密码
     if (currentPassword !== storedPassword) {
