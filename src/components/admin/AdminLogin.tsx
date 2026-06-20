@@ -1,11 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ChangePasswordDialog } from '@/components/admin/ChangePasswordDialog';
+import Link from 'next/link';
 
-export default function AdminPage() {
+export function AdminLogin() {
   const router = useRouter();
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -29,7 +28,7 @@ export default function AdminPage() {
     checkAuth();
   }, []);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
@@ -46,8 +45,9 @@ export default function AdminPage() {
       const data = await response.json();
 
       if (response.ok && data.success) {
+        // 登录成功，刷新页面
+        router.refresh();
         setIsAuthenticated(true);
-        setPassword('');
       } else {
         setError(data.error || '密码错误，请重试');
       }
@@ -55,15 +55,6 @@ export default function AdminPage() {
       setError('登录失败，请稍后重试');
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleLogout = async () => {
-    try {
-      await fetch('/api/admin/logout', { method: 'POST' });
-      setIsAuthenticated(false);
-    } catch (err) {
-      console.error('登出失败:', err);
     }
   };
 
@@ -87,7 +78,7 @@ export default function AdminPage() {
               <p className="text-gray-600 text-sm">请输入管理密码访问后台</p>
             </div>
 
-            <form onSubmit={handleLogin} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
                   管理密码
@@ -131,59 +122,6 @@ export default function AdminPage() {
     );
   }
 
-  // 已登录，显示管理后台
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* 头部 */}
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-6 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">管理后台</h1>
-              <p className="text-gray-600 mt-1">管理你的文章内容</p>
-            </div>
-            <div className="flex gap-4 items-center">
-              <ChangePasswordDialog />
-              <Link
-                href="/"
-                className="px-4 py-2 text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                查看网站
-              </Link>
-              <button
-                onClick={handleLogout}
-                className="px-4 py-2 text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                登出
-              </button>
-              <Link
-                href="/admin/new"
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-              >
-                新建文章
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* 主内容 */}
-      <main className="max-w-6xl mx-auto px-6 py-8">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">文章列表</h2>
-          </div>
-          <div className="p-6 text-center text-gray-500">
-            <p>还没有文章，点击"新建文章"开始创作</p>
-            <Link
-              href="/admin/new"
-              className="inline-block mt-4 px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-            >
-              创建第一篇文章
-            </Link>
-          </div>
-        </div>
-      </main>
-    </div>
-  );
+  // 已登录，返回 null 让父组件显示管理后台
+  return null;
 }
