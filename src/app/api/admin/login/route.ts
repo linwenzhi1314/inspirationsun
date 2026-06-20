@@ -1,11 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getSupabaseClient } from '@/storage/database/supabase-client';
 
 export async function POST(request: NextRequest) {
   try {
     const { password } = await request.json();
     
-    // 从环境变量获取管理密码，默认为 'admin123'
-    const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
+    const client = getSupabaseClient();
+
+    // 从数据库获取管理密码
+    const { data: result, error: fetchError } = await client
+      .from('settings')
+      .select('value')
+      .eq('key', 'admin_password')
+      .single();
+
+    let adminPassword = 'admin123';
+    if (!fetchError && result?.value) {
+      adminPassword = result.value;
+    }
     
     if (password === adminPassword) {
       // 创建响应并设置 cookie

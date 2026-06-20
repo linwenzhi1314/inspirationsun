@@ -49,3 +49,13 @@ export const profiles = pgTable(
 		index("profiles_twitter_id_idx").on(table.twitter_id),
 	]
 );
+
+// 系统设置表
+export const settings = pgTable(
+	"settings",
+	{
+		key: varchar("key", { length: 100 }).primaryKey(),
+		value: text("value").notNull(),
+		updated_at: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+	}
+);

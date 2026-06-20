@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { ChangePasswordDialog } from '@/components/admin/ChangePasswordDialog';
 
 export const metadata: Metadata = {
   title: '管理后台 - 混沌中的探路者',
@@ -27,7 +28,8 @@ export default async function AdminPage() {
               <h1 className="text-2xl font-bold text-gray-900">管理后台</h1>
               <p className="text-gray-600 mt-1">管理你的文章内容</p>
             </div>
-            <div className="flex gap-4">
+            <div className="flex gap-4 items-center">
+              <ChangePasswordDialog />
               <Link
                 href="/"
                 className="px-4 py-2 text-gray-600 hover:text-gray-900 transition-colors"
