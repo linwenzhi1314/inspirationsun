@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getPasswordFromDb } from '@/lib/db-direct';
+import { getAdminPassword } from '@/lib/password-manager';
 
 export async function POST(request: NextRequest) {
   try {
     const { password } = await request.json();
     
-    // 从数据库获取管理密码（直接连接，绕过 PostgREST schema cache）
-    const adminPassword = await getPasswordFromDb();
+    // 获取管理员密码（自动选择最佳方式）
+    const adminPassword = await getAdminPassword();
     
     if (password === adminPassword) {
       // 创建响应并设置 cookie
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('登录错误:', error);
     return NextResponse.json(
-      { error: '登录失败' },
+      { error: `登录失败: ${error instanceof Error ? error.message : '未知错误'}` },
       { status: 500 }
     );
   }
