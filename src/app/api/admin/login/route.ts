@@ -1,23 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseClient } from '@/storage/database/supabase-client';
+import { getPasswordFromDb } from '@/lib/db-direct';
 
 export async function POST(request: NextRequest) {
   try {
     const { password } = await request.json();
     
-    const client = getSupabaseClient();
-
-    // 从数据库获取管理密码
-    const { data: result, error: fetchError } = await client
-      .from('settings')
-      .select('value')
-      .eq('key', 'admin_password')
-      .single();
-
-    let adminPassword = 'admin123';
-    if (!fetchError && result?.value) {
-      adminPassword = result.value;
-    }
+    // 从数据库获取管理密码（直接连接，绕过 PostgREST schema cache）
+    const adminPassword = await getPasswordFromDb();
     
     if (password === adminPassword) {
       // 创建响应并设置 cookie

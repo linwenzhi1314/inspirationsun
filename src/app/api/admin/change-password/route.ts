@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseClient } from '@/storage/database/supabase-client';
 import { cookies } from 'next/headers';
+import { getPasswordFromDb, setPasswordInDb } from '@/lib/db-direct';
 
 export async function POST(request: NextRequest) {
   try {
@@ -23,36 +23,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '新密码至少需要 6 个字符' }, { status: 400 });
     }
 
-    const client = getSupabaseClient();
-
-    // 从数据库获取当前密码（与登录 API 保持一致）
-    const { data: result, error: fetchError } = await client
-      .from('settings')
-      .select('value')
-      .eq('key', 'admin_password')
-      .single();
-
-    let storedPassword = 'admin123';
-    if (!fetchError && result?.value) {
-      storedPassword = result.value;
-    }
+    // 从数据库获取当前密码（直接连接，绕过 PostgREST schema cache）
+    const storedPassword = await getPasswordFromDb();
 
     // 验证当前密码
     if (currentPassword !== storedPassword) {
       return NextResponse.json({ error: '当前密码错误' }, { status: 400 });
     }
 
-    // 更新密码 - 使用 upsert
-    const { error: updateError } = await client
-      .from('settings')
-      .upsert(
-        { key: 'admin_password', value: newPassword, updated_at: new Date().toISOString() },
-        { onConflict: 'key' }
-      );
+    // 更新密码（直接连接数据库）
+    const success = await setPasswordInDb(newPassword);
 
-    if (updateError) {
-      console.error('更新密码失败:', updateError);
-      return NextResponse.json({ error: `更新密码失败: ${updateError.message}` }, { status: 500 });
+    if (!success) {
+      return NextResponse.json({ error: '更新密码失败' }, { status: 500 });
     }
 
     return NextResponse.json({ success: true, message: '密码修改成功' });
