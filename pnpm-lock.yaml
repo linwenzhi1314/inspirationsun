@@ -104,6 +104,9 @@ importers:
       '@types/node':
         specifier: ^20
         version: 20.19.30
+      '@types/pg':
+        specifier: ^8.16.0
+        version: 8.16.0
       '@types/react':
         specifier: ^19
         version: 19.2.10
@@ -204,9 +207,6 @@ importers:
       '@react-dev-inspector/middleware':
         specifier: ^2.0.1
         version: 2.0.1(eslint@9.39.2(jiti@2.7.0))(typescript@5.9.3)(webpack@5.104.1(esbuild@0.27.3)(postcss@8.5.15))
-      '@types/pg':
-        specifier: ^8.16.0
-        version: 8.16.0
       autoprefixer:
         specifier: ^10.5.0
         version: 10.5.0(postcss@8.5.15)
