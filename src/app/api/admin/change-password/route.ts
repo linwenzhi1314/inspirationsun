@@ -25,13 +25,16 @@ export async function POST(request: NextRequest) {
 
     const client = getSupabaseClient();
 
-    // 使用 RPC 函数获取当前密码（绕过 schema cache 问题）
-    const { data: storedPassword, error: fetchError } = await client
-      .rpc('get_admin_password');
+    // 从数据库获取当前密码（与登录 API 保持一致）
+    const { data: result, error: fetchError } = await client
+      .from('settings')
+      .select('value')
+      .eq('key', 'admin_password')
+      .single();
 
-    if (fetchError) {
-      console.error('获取密码失败:', fetchError);
-      return NextResponse.json({ error: `获取密码失败: ${fetchError.message}` }, { status: 500 });
+    let storedPassword = 'admin123';
+    if (!fetchError && result?.value) {
+      storedPassword = result.value;
     }
 
     // 验证当前密码
@@ -39,9 +42,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '当前密码错误' }, { status: 400 });
     }
 
-    // 使用 RPC 函数更新密码
+    // 更新密码 - 使用 upsert
     const { error: updateError } = await client
-      .rpc('update_admin_password', { new_password: newPassword });
+      .from('settings')
+      .upsert(
+        { key: 'admin_password', value: newPassword, updated_at: new Date().toISOString() },
+        { onConflict: 'key' }
+      );
 
     if (updateError) {
       console.error('更新密码失败:', updateError);
