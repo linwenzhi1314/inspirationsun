@@ -362,3 +362,4 @@ export const useStore = create<Store>((set) => ({
 4. **使用 TypeScript** 进行类型安全开发
 5. **使用 `@/` 路径别名** 导入模块（已配置）
 # Test deployment - Sat Jun 20 10:28:18 CST 2026
+# 构建修复测试 - Sat Jun 20 10:49:57 CST 2026
