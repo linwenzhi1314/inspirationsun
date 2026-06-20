@@ -6,9 +6,9 @@ export async function POST(request: NextRequest) {
   try {
     // 验证登录状态
     const cookieStore = await cookies();
-    const authSession = cookieStore.get('admin_session');
+    const authSession = cookieStore.get('admin_auth');
     
-    if (!authSession || authSession.value !== 'authenticated') {
+    if (!authSession || authSession.value !== 'true') {
       return NextResponse.json({ error: '未授权访问' }, { status: 401 });
     }
 
