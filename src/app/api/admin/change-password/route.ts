@@ -40,18 +40,40 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '当前密码错误' }, { status: 400 });
     }
 
-    // 更新密码
-    const { error: updateError } = await client
+    // 更新或插入密码
+    // 先尝试更新，如果没有记录则插入
+    const { data: existingData, error: checkError } = await client
       .from('settings')
-      .upsert({
-        key: 'admin_password',
-        value: newPassword,
-        updated_at: new Date().toISOString()
-      });
+      .select('key')
+      .eq('key', 'admin_password')
+      .maybeSingle();
+
+    let updateError;
+    if (existingData) {
+      // 更新现有记录
+      const result = await client
+        .from('settings')
+        .update({ 
+          value: newPassword,
+          updated_at: new Date().toISOString()
+        })
+        .eq('key', 'admin_password');
+      updateError = result.error;
+    } else {
+      // 插入新记录
+      const result = await client
+        .from('settings')
+        .insert({
+          key: 'admin_password',
+          value: newPassword,
+          updated_at: new Date().toISOString()
+        });
+      updateError = result.error;
+    }
 
     if (updateError) {
       console.error('更新密码失败:', updateError);
-      return NextResponse.json({ error: '更新密码失败' }, { status: 500 });
+      return NextResponse.json({ error: `更新密码失败: ${updateError.message || JSON.stringify(updateError)}` }, { status: 500 });
     }
 
     return NextResponse.json({ success: true, message: '密码修改成功' });
