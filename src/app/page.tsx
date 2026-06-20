@@ -65,9 +65,6 @@ export default async function Home() {
 							<Link href="/about" className="text-gray-300 hover:text-white transition-colors">
 								关于我
 							</Link>
-							<Link href="/admin" className="text-gray-300 hover:text-white transition-colors">
-								管理
-							</Link>
 						</div>
 					</nav>
 
@@ -212,7 +209,6 @@ export default async function Home() {
 					<div className="flex justify-center gap-8 text-sm text-gray-600">
 						<Link href="/" className="hover:text-gray-900 transition-colors">首页</Link>
 						<Link href="/about" className="hover:text-gray-900 transition-colors">关于我</Link>
-						<Link href="/admin" className="hover:text-gray-900 transition-colors">管理</Link>
 					</div>
 					<div className="text-center mt-8 pt-8 border-t border-gray-200">
 						<p className="text-gray-500 text-sm">

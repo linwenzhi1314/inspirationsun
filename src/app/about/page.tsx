@@ -29,12 +29,6 @@ export default function AboutPage() {
 							>
 								关于我
 							</Link>
-							<Link
-								href="/admin"
-								className="text-gray-300 hover:text-white transition-colors"
-							>
-								管理
-							</Link>
 						</nav>
 					</div>
 				</div>

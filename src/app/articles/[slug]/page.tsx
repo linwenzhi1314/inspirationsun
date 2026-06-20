@@ -80,12 +80,6 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
 							>
 								首页
 							</Link>
-							<Link
-								href="/admin"
-								className="text-gray-600 hover:text-gray-900 transition-colors"
-							>
-								管理
-							</Link>
 						</nav>
 					</div>
 				</div>
