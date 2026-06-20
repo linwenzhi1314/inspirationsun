@@ -25,55 +25,27 @@ export async function POST(request: NextRequest) {
 
     const client = getSupabaseClient();
 
-    // 从数据库获取当前密码
-    const { data: result, error: fetchError } = await client
-      .from('settings')
-      .select('value')
-      .eq('key', 'admin_password')
-      .maybeSingle();
+    // 使用 RPC 函数获取当前密码（绕过 schema cache 问题）
+    const { data: storedPassword, error: fetchError } = await client
+      .rpc('get_admin_password');
 
-    // 使用默认密码如果数据库中没有记录
-    const storedPassword = (!fetchError && result?.value) ? result.value : 'admin123';
+    if (fetchError) {
+      console.error('获取密码失败:', fetchError);
+      return NextResponse.json({ error: `获取密码失败: ${fetchError.message}` }, { status: 500 });
+    }
 
     // 验证当前密码
     if (currentPassword !== storedPassword) {
       return NextResponse.json({ error: '当前密码错误' }, { status: 400 });
     }
 
-    // 更新或插入密码
-    // 先尝试更新，如果没有记录则插入
-    const { data: existingData, error: checkError } = await client
-      .from('settings')
-      .select('key')
-      .eq('key', 'admin_password')
-      .maybeSingle();
-
-    let updateError;
-    if (existingData) {
-      // 更新现有记录
-      const result = await client
-        .from('settings')
-        .update({ 
-          value: newPassword,
-          updated_at: new Date().toISOString()
-        })
-        .eq('key', 'admin_password');
-      updateError = result.error;
-    } else {
-      // 插入新记录
-      const result = await client
-        .from('settings')
-        .insert({
-          key: 'admin_password',
-          value: newPassword,
-          updated_at: new Date().toISOString()
-        });
-      updateError = result.error;
-    }
+    // 使用 RPC 函数更新密码
+    const { error: updateError } = await client
+      .rpc('update_admin_password', { new_password: newPassword });
 
     if (updateError) {
       console.error('更新密码失败:', updateError);
-      return NextResponse.json({ error: `更新密码失败: ${updateError.message || JSON.stringify(updateError)}` }, { status: 500 });
+      return NextResponse.json({ error: `更新密码失败: ${updateError.message}` }, { status: 500 });
     }
 
     return NextResponse.json({ success: true, message: '密码修改成功' });
