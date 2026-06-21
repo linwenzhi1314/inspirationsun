@@ -40,18 +40,21 @@ export default function NewArticlePage() {
     checkAuth();
   }, [router]);
 
-  // 自动生成 slug
-  const generateSlug = (title: string) => {
-    return title
-      .toLowerCase()
-      .replace(/[^a-z0-9\u4e00-\u9fa5]+/g, '-')
-      .replace(/^-+|-+$/g, '');
+  // 自动生成数字 ID 作为 slug
+  const generateSlug = () => {
+    return Date.now().toString();
   };
 
+  // 组件加载时自动生成 slug
+  useEffect(() => {
+    if (!slug) {
+      setSlug(generateSlug());
+    }
+  }, []);
+
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newTitle = e.target.value;
-    setTitle(newTitle);
-    setSlug(generateSlug(newTitle));
+    setTitle(e.target.value);
+    // 不再自动更新 slug，保持数字 ID
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -144,7 +147,7 @@ export default function NewArticlePage() {
           {/* Slug */}
           <div>
             <label htmlFor="slug" className="block text-sm font-medium text-gray-700 mb-2">
-              URL 别名 *
+              URL 别名 *（数字ID）
             </label>
             <input
               type="text"
@@ -152,10 +155,10 @@ export default function NewArticlePage() {
               value={slug}
               onChange={(e) => setSlug(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="url-slug"
+              placeholder="自动生成数字ID"
               required
             />
-            <p className="text-gray-500 text-sm mt-1">URL 中的唯一标识符</p>
+            <p className="text-gray-500 text-sm mt-1">自动生成的数字ID，也可自定义</p>
           </div>
 
           {/* 分类 */}
