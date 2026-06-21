@@ -1,6 +1,16 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseClient } from '@/storage/database/supabase-client';
 
+// 刷新 Schema Cache
+async function refreshSchemaCache() {
+  try {
+    const client = getSupabaseClient();
+    await client.rpc('reload_schema_cache');
+  } catch (error) {
+    console.error('刷新 Schema Cache 失败:', error);
+  }
+}
+
 export async function GET() {
   try {
     const client = getSupabaseClient();
@@ -11,6 +21,19 @@ export async function GET() {
       .order('created_at', { ascending: false });
 
     if (error) {
+      // 如果是 schema cache 错误，尝试刷新后重试
+      if (error.message.includes('schema cache')) {
+        await refreshSchemaCache();
+        const retryResult = await client
+          .from('articles')
+          .select('id, title, slug, excerpt, category, published, created_at, updated_at, twitter_post_id')
+          .order('created_at', { ascending: false });
+        
+        if (retryResult.error) {
+          throw new Error(`获取文章列表失败: ${retryResult.error.message}`);
+        }
+        return NextResponse.json({ articles: retryResult.data });
+      }
       throw new Error(`获取文章列表失败: ${error.message}`);
     }
 
@@ -18,7 +41,7 @@ export async function GET() {
   } catch (error) {
     console.error('获取文章列表错误:', error);
     return NextResponse.json(
-      { error: '获取文章列表失败' },
+      { error: `获取文章列表失败: ${error instanceof Error ? error.message : '未知错误'}` },
       { status: 500 }
     );
   }
@@ -39,13 +62,28 @@ export async function POST(request: Request) {
     const client = getSupabaseClient();
 
     // 检查 slug 是否已存在
-    const { data: existingArticle } = await client
+    const { data: existingArticle, error: checkError } = await client
       .from('articles')
       .select('id')
       .eq('slug', slug)
       .maybeSingle();
 
-    if (existingArticle) {
+    // 如果是 schema cache 错误，尝试刷新后重试
+    if (checkError && checkError.message.includes('schema cache')) {
+      await refreshSchemaCache();
+      const retryResult = await client
+        .from('articles')
+        .select('id')
+        .eq('slug', slug)
+        .maybeSingle();
+      
+      if (retryResult.data) {
+        return NextResponse.json(
+          { error: '该链接别名已存在，请使用其他名称' },
+          { status: 400 }
+        );
+      }
+    } else if (existingArticle) {
       return NextResponse.json(
         { error: '该链接别名已存在，请使用其他名称' },
         { status: 400 }
@@ -68,6 +106,28 @@ export async function POST(request: Request) {
       .single();
 
     if (error) {
+      // 如果是 schema cache 错误，尝试刷新后重试
+      if (error.message.includes('schema cache')) {
+        await refreshSchemaCache();
+        const retryResult = await client
+          .from('articles')
+          .insert({
+            title,
+            slug,
+            content,
+            excerpt,
+            cover_image,
+            category: category || 'signal_capture',
+            published,
+          })
+          .select()
+          .single();
+        
+        if (retryResult.error) {
+          throw new Error(`保存文章失败: ${retryResult.error.message}`);
+        }
+        return NextResponse.json({ article: retryResult.data });
+      }
       throw new Error(`保存文章失败: ${error.message}`);
     }
 
@@ -105,7 +165,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error('保存文章错误:', error);
     return NextResponse.json(
-      { error: '保存文章失败' },
+      { error: `创建失败: ${error instanceof Error ? error.message : '未知错误'}` },
       { status: 500 }
     );
   }
