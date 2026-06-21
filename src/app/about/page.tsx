@@ -63,6 +63,9 @@ export default function AboutPage() {
 						<p>
 							我能感知到别人忽略的"信号"——气场、情绪、能量的微妙波动。这种敏感曾经是我的负担，但现在，它成了我最锋利的工具。
 						</p>
+						<p>
+							我不会被单一标签束缚，因为我想要的是，多学科的融合，我只把自己定位为一名<strong>学者</strong>。
+						</p>
 					</div>
 				</div>
 
@@ -115,6 +118,83 @@ export default function AboutPage() {
 									</p>
 								</div>
 							</div>
+						</div>
+					</div>
+				</div>
+
+				{/* 我的案例 */}
+				<div className="mb-16">
+					<h2 className="text-2xl font-bold text-gray-900 mb-6">
+						我的案例
+					</h2>
+					<div className="space-y-4">
+						<div className="bg-gray-50 rounded-lg p-6 border-l-4 border-purple-500">
+							<div className="flex items-start gap-3">
+								<span className="text-2xl">📝</span>
+								<div>
+									<h3 className="font-semibold text-gray-900">公众号：林生观天下</h3>
+									<p className="text-gray-600 text-sm mt-1">主题：关于写国家政策，产业经济的内容</p>
+								</div>
+							</div>
+						</div>
+						<div className="bg-gray-50 rounded-lg p-6 border-l-4 border-pink-500">
+							<div className="flex items-start gap-3">
+								<span className="text-2xl">🎵</span>
+								<div>
+									<h3 className="font-semibold text-gray-900">音乐创作：《规矩》《我就这样》</h3>
+									<p className="text-gray-600 text-sm mt-1">用AI创作属于自己的音乐</p>
+								</div>
+							</div>
+						</div>
+						<div className="bg-gray-50 rounded-lg p-6 border-l-4 border-green-500">
+							<div className="flex items-start gap-3">
+								<span className="text-2xl">🚀</span>
+								<div>
+									<h3 className="font-semibold text-gray-900">项目：AI创业项目搜索插件</h3>
+									<p className="text-gray-600 text-sm mt-1">
+										网站：<a href="https://aistartupscout.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">aistartupscout.com</a>
+										，AI创业项目智能分析师
+									</p>
+								</div>
+							</div>
+						</div>
+						<div className="bg-gray-50 rounded-lg p-6 border-l-4 border-gray-400">
+							<div className="flex items-start gap-3">
+								<span className="text-2xl">✨</span>
+								<div>
+									<h3 className="font-semibold text-gray-900">未完待续...</h3>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				{/* 我的经历 */}
+				<div className="mb-16">
+					<h2 className="text-2xl font-bold text-gray-900 mb-6">
+						我的经历
+					</h2>
+					<div className="grid md:grid-cols-3 gap-6">
+						<div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-lg p-6">
+							<div className="text-3xl mb-3">📚</div>
+							<h3 className="font-semibold text-gray-900 mb-3">看过的书</h3>
+							<p className="text-gray-600 text-sm leading-relaxed">
+								艾菲《直击本质》、《道德经》、《素书》、《孙子兵法》.....
+							</p>
+						</div>
+						<div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-lg p-6">
+							<div className="text-3xl mb-3">🛤️</div>
+							<h3 className="font-semibold text-gray-900 mb-3">走过的路</h3>
+							<p className="text-gray-600 text-sm leading-relaxed">
+								重庆、荆州、潮州、福州、泉州、厦门、莆田
+							</p>
+						</div>
+						<div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-6">
+							<div className="text-3xl mb-3">🏔️</div>
+							<h3 className="font-semibold text-gray-900 mb-3">看过的风景</h3>
+							<p className="text-gray-600 text-sm leading-relaxed">
+								三峡、武当山、湄洲岛
+							</p>
 						</div>
 					</div>
 				</div>
