@@ -26,6 +26,11 @@ export default function AdminPage() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [activeTab, setActiveTab] = useState<'published' | 'drafts'>('published');
   const [loadingArticles, setLoadingArticles] = useState(false);
+  const [dbNeedsInit, setDbNeedsInit] = useState(false);
+  const [pat, setPat] = useState('');
+  const [initLoading, setInitLoading] = useState(false);
+  const [initError, setInitError] = useState('');
+  const [initSql, setInitSql] = useState('');
 
   // 检查登录状态
   useEffect(() => {
@@ -46,16 +51,60 @@ export default function AdminPage() {
   // 获取文章列表
   const fetchArticles = async () => {
     setLoadingArticles(true);
+    setDbNeedsInit(false);
     try {
       const response = await fetch('/api/admin/articles');
       const data = await response.json();
       if (response.ok) {
         setArticles(data.articles || []);
+      } else {
+        // 检测是否需要初始化数据库
+        if (data.error?.includes('schema cache') || data.error?.includes('articles')) {
+          setDbNeedsInit(true);
+          setInitSql(data.sql || '');
+        }
       }
     } catch (err) {
       console.error('获取文章失败:', err);
+      setDbNeedsInit(true);
     } finally {
       setLoadingArticles(false);
+    }
+  };
+
+  // 初始化数据库
+  const handleInitDb = async () => {
+    if (!pat) {
+      setInitError('请输入 Supabase PAT');
+      return;
+    }
+    setInitLoading(true);
+    setInitError('');
+    
+    try {
+      const response = await fetch('/api/admin/init-db', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pat }),
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        setDbNeedsInit(false);
+        setPat('');
+        // 等待几秒让 schema cache 刷新
+        setTimeout(() => fetchArticles(), 3000);
+      } else {
+        setInitError(data.error || '初始化失败');
+        if (data.sql) {
+          setInitSql(data.sql);
+        }
+      }
+    } catch (err) {
+      setInitError('初始化请求失败');
+    } finally {
+      setInitLoading(false);
     }
   };
 
@@ -289,6 +338,94 @@ export default function AdminPage() {
           {loadingArticles ? (
             <div className="p-6 text-center text-gray-500">
               加载中...
+            </div>
+          ) : dbNeedsInit ? (
+            <div className="p-6">
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
+                <h3 className="text-amber-800 font-medium mb-2">数据库表不存在</h3>
+                <p className="text-amber-700 text-sm mb-4">
+                  需要初始化数据库表。有两种方式：
+                </p>
+                
+                <div className="space-y-4">
+                  <div className="bg-white rounded p-4 border border-gray-200">
+                    <h4 className="font-medium text-gray-900 mb-2">方式一：自动初始化（推荐）</h4>
+                    <p className="text-sm text-gray-600 mb-3">
+                      输入你的 Supabase Personal Access Token (PAT) 一键创建表。
+                      PAT 获取地址：<a 
+                        href="https://supabase.com/dashboard/account/tokens" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline"
+                      >https://supabase.com/dashboard/account/tokens</a>
+                    </p>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={pat}
+                        onChange={(e) => setPat(e.target.value)}
+                        placeholder="输入你的 Supabase PAT"
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                      />
+                      <button
+                        onClick={handleInitDb}
+                        disabled={initLoading}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                      >
+                        {initLoading ? '初始化中...' : '一键初始化'}
+                      </button>
+                    </div>
+                    {initError && (
+                      <p className="text-red-600 text-sm mt-2">{initError}</p>
+                    )}
+                  </div>
+                  
+                  <div className="bg-white rounded p-4 border border-gray-200">
+                    <h4 className="font-medium text-gray-900 mb-2">方式二：手动执行 SQL</h4>
+                    <p className="text-sm text-gray-600 mb-3">
+                      在 Supabase Dashboard SQL Editor 中执行以下语句：
+                    </p>
+                    <div className="bg-gray-900 text-gray-100 p-3 rounded-md text-sm font-mono overflow-x-auto">
+                      <pre>{initSql || `-- 创建 articles 表
+CREATE TABLE IF NOT EXISTS articles (
+  id SERIAL PRIMARY KEY,
+  title TEXT NOT NULL,
+  slug TEXT UNIQUE NOT NULL,
+  content TEXT,
+  excerpt TEXT,
+  cover_image TEXT,
+  category TEXT DEFAULT 'signal_capture',
+  published BOOLEAN DEFAULT false,
+  twitter_post_id TEXT,
+  twitter_posted_at TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
+);
+
+-- 创建 settings 表  
+CREATE TABLE IF NOT EXISTS settings (
+  key VARCHAR(100) PRIMARY KEY,
+  value TEXT NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
+);
+
+-- 授权
+GRANT ALL ON articles TO anon;
+GRANT ALL ON articles TO authenticated;
+GRANT ALL ON articles TO service_role;
+GRANT ALL ON settings TO anon;
+GRANT ALL ON settings TO authenticated;
+GRANT ALL ON settings TO service_role;`}</pre>
+                    </div>
+                    <button
+                      onClick={() => fetchArticles()}
+                      className="mt-3 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+                    >
+                      手动完成后刷新
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           ) : filteredArticles.length === 0 ? (
             <div className="p-6 text-center text-gray-500">
