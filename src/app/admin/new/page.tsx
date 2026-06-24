@@ -15,9 +15,9 @@ export default function NewArticlePage() {
   const [excerpt, setExcerpt] = useState('');
   const [coverImage, setCoverImage] = useState('');
   const [category, setCategory] = useState<ArticleCategory>('signal_capture');
-  const [published, setPublished] = useState(false);
   const [syncToTwitter, setSyncToTwitter] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loadingType, setLoadingType] = useState<'draft' | 'publish' | null>(null);
 
   // 检查登录状态
   useEffect(() => {
@@ -57,9 +57,9 @@ export default function NewArticlePage() {
     // 不再自动更新 slug，保持数字 ID
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (publishNow: boolean) => {
     setLoading(true);
+    setLoadingType(publishNow ? 'publish' : 'draft');
 
     try {
       const response = await fetch('/api/admin/articles', {
@@ -74,20 +74,29 @@ export default function NewArticlePage() {
           excerpt,
           cover_image: coverImage,
           category,
-          published,
+          published: publishNow,
           sync_to_twitter: syncToTwitter,
         }),
       });
 
+      const data = await response.json();
+
       if (response.ok) {
-        router.push('/admin');
+        if (publishNow) {
+          alert('文章已发布成功！');
+          router.push('/admin');
+        } else {
+          alert('草稿已保存！');
+          router.push('/admin');
+        }
       } else {
-        alert('创建失败，请重试');
+        alert('创建失败: ' + (data.error || '请重试'));
       }
     } catch (error) {
       alert('创建失败，请重试');
     } finally {
       setLoading(false);
+      setLoadingType(null);
     }
   };
 
@@ -127,7 +136,7 @@ export default function NewArticlePage() {
 
       {/* 表单 */}
       <main className="max-w-4xl mx-auto px-6 py-8">
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form className="space-y-6">
           {/* 标题 */}
           <div>
             <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
@@ -242,18 +251,8 @@ export default function NewArticlePage() {
             />
           </div>
 
-          {/* 选项 */}
+          {/* Twitter 同步选项 */}
           <div className="flex flex-col gap-4">
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={published}
-                onChange={(e) => setPublished(e.target.checked)}
-                className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-              />
-              <span className="text-gray-700">立即发布</span>
-            </label>
-
             <label className="flex items-center gap-2">
               <input
                 type="checkbox"
@@ -261,22 +260,66 @@ export default function NewArticlePage() {
                 onChange={(e) => setSyncToTwitter(e.target.checked)}
                 className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
               />
-              <span className="text-gray-700">同步到 X (Twitter)</span>
+              <span className="text-gray-700">同步到 X (Twitter)（需要配置 API）</span>
             </label>
           </div>
 
-          {/* 提交按钮 */}
-          <div className="flex gap-4">
+          {/* 提交按钮 - 两个按钮 */}
+          <div className="flex gap-4 pt-4">
+            {/* 保存草稿按钮 */}
             <button
-              type="submit"
+              type="button"
+              onClick={() => handleSubmit(false)}
               disabled={loading}
-              className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-2.5 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
-              {loading ? '保存中...' : '保存文章'}
+              {loadingType === 'draft' ? (
+                <>
+                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  保存中...
+                </>
+              ) : (
+                <>
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                  </svg>
+                  保存草稿
+                </>
+              )}
             </button>
+
+            {/* 立即发布按钮 */}
+            <button
+              type="button"
+              onClick={() => handleSubmit(true)}
+              disabled={loading}
+              className="px-6 py-2.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {loadingType === 'publish' ? (
+                <>
+                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  发布中...
+                </>
+              ) : (
+                <>
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  立即发布
+                </>
+              )}
+            </button>
+
+            {/* 取消按钮 */}
             <Link
               href="/admin"
-              className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+              className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
             >
               取消
             </Link>

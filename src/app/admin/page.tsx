@@ -4,6 +4,17 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ChangePasswordDialog } from '@/components/admin/ChangePasswordDialog';
+import { ARTICLE_CATEGORIES } from '@/lib/constants';
+
+interface Article {
+  id: number;
+  title: string;
+  slug: string;
+  category: string;
+  published: boolean;
+  created_at: string;
+  updated_at: string;
+}
 
 export default function AdminPage() {
   const router = useRouter();
@@ -12,6 +23,9 @@ export default function AdminPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [activeTab, setActiveTab] = useState<'published' | 'drafts'>('published');
+  const [loadingArticles, setLoadingArticles] = useState(false);
 
   // 检查登录状态
   useEffect(() => {
@@ -28,6 +42,29 @@ export default function AdminPage() {
     };
     checkAuth();
   }, []);
+
+  // 获取文章列表
+  const fetchArticles = async () => {
+    setLoadingArticles(true);
+    try {
+      const response = await fetch('/api/admin/articles');
+      const data = await response.json();
+      if (response.ok) {
+        setArticles(data.articles || []);
+      }
+    } catch (err) {
+      console.error('获取文章失败:', err);
+    } finally {
+      setLoadingArticles(false);
+    }
+  };
+
+  // 登录后获取文章
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchArticles();
+    }
+  }, [isAuthenticated]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,6 +103,54 @@ export default function AdminPage() {
       console.error('登出失败:', err);
     }
   };
+
+  const handleDelete = async (id: number) => {
+    if (!confirm('确定要删除这篇文章吗？')) return;
+
+    try {
+      const response = await fetch(`/api/admin/articles/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        fetchArticles();
+      } else {
+        alert('删除失败');
+      }
+    } catch (err) {
+      alert('删除失败');
+    }
+  };
+
+  const handlePublish = async (id: number) => {
+    try {
+      const response = await fetch(`/api/admin/articles/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ published: true }),
+      });
+
+      if (response.ok) {
+        fetchArticles();
+      } else {
+        alert('发布失败');
+      }
+    } catch (err) {
+      alert('发布失败');
+    }
+  };
+
+  // 获取分类信息
+  const getCategoryInfo = (key: string) => {
+    return ARTICLE_CATEGORIES.find(c => c.key === key) || { icon: '📄', label: key };
+  };
+
+  // 根据 Tab 过滤文章
+  const filteredArticles = articles.filter(article => 
+    activeTab === 'published' ? article.published : !article.published
+  );
 
   // 加载中
   if (checkingAuth) {
@@ -169,19 +254,108 @@ export default function AdminPage() {
 
       {/* 主内容 */}
       <main className="max-w-6xl mx-auto px-6 py-8">
+        {/* Tab 切换 */}
+        <div className="flex gap-4 mb-6">
+          <button
+            onClick={() => setActiveTab('published')}
+            className={`px-6 py-2 rounded-md transition-colors ${
+              activeTab === 'published'
+                ? 'bg-blue-600 text-white'
+                : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+            }`}
+          >
+            已发布 ({articles.filter(a => a.published).length})
+          </button>
+          <button
+            onClick={() => setActiveTab('drafts')}
+            className={`px-6 py-2 rounded-md transition-colors ${
+              activeTab === 'drafts'
+                ? 'bg-amber-600 text-white'
+                : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+            }`}
+          >
+            草稿箱 ({articles.filter(a => !a.published).length})
+          </button>
+        </div>
+
+        {/* 文章列表 */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
           <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">文章列表</h2>
+            <h2 className="text-lg font-semibold text-gray-900">
+              {activeTab === 'published' ? '已发布文章' : '草稿箱'}
+            </h2>
           </div>
-          <div className="p-6 text-center text-gray-500">
-            <p>还没有文章，点击"新建文章"开始创作</p>
-            <Link
-              href="/admin/new"
-              className="inline-block mt-4 px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-            >
-              创建第一篇文章
-            </Link>
-          </div>
+
+          {loadingArticles ? (
+            <div className="p-6 text-center text-gray-500">
+              加载中...
+            </div>
+          ) : filteredArticles.length === 0 ? (
+            <div className="p-6 text-center text-gray-500">
+              <p>
+                {activeTab === 'published' 
+                  ? '还没有已发布的文章' 
+                  : '草稿箱为空'}
+              </p>
+              {activeTab === 'drafts' && (
+                <Link
+                  href="/admin/new"
+                  className="inline-block mt-4 px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  创建新文章
+                </Link>
+              )}
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-200">
+              {filteredArticles.map((article) => {
+                const categoryInfo = getCategoryInfo(article.category);
+                return (
+                  <div key={article.id} className="px-6 py-4 flex items-center justify-between hover:bg-gray-50">
+                    <div className="flex items-center gap-4">
+                      <span className="text-xl">{categoryInfo.icon}</span>
+                      <div>
+                        <h3 className="font-medium text-gray-900">{article.title}</h3>
+                        <div className="flex items-center gap-2 text-sm text-gray-500 mt-1">
+                          <span>{categoryInfo.label}</span>
+                          <span>•</span>
+                          <span>
+                            {new Date(article.created_at).toLocaleDateString('zh-CN')}
+                          </span>
+                          <span>•</span>
+                          <span className={article.published ? 'text-green-600' : 'text-amber-600'}>
+                            {article.published ? '已发布' : '草稿'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      {!article.published && (
+                        <button
+                          onClick={() => handlePublish(article.id)}
+                          className="px-3 py-1.5 text-sm bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+                        >
+                          发布
+                        </button>
+                      )}
+                      <Link
+                        href={`/admin/edit/${article.id}`}
+                        className="px-3 py-1.5 text-sm bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
+                      >
+                        编辑
+                      </Link>
+                      <button
+                        onClick={() => handleDelete(article.id)}
+                        className="px-3 py-1.5 text-sm bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                      >
+                        删除
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </main>
     </div>
