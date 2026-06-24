@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import { ARTICLE_CATEGORIES, getCategoryConfig, type ArticleCategory } from '@/lib/constants';
+import { getSupabaseClient } from '@/storage/database/supabase-client';
 
 export const metadata: Metadata = {
 	title: '混沌中的探路者 - 用敏感捕捉信号，用跨界解码规律',
@@ -23,18 +24,21 @@ interface Article {
 
 async function getArticles(): Promise<Article[]> {
 	try {
-		const baseUrl = process.env.COZE_PROJECT_DOMAIN_DEFAULT || `http://localhost:${process.env.DEPLOY_RUN_PORT || 5000}`;
-		const protocol = baseUrl.startsWith('http') ? '' : 'https://';
-		const res = await fetch(`${protocol}${baseUrl}/api/articles`, {
-			cache: 'no-store',
-		});
+		// 直接使用 Supabase Client 获取已发布文章
+		const client = getSupabaseClient();
+		const { data, error } = await client
+			.from('articles')
+			.select('id, title, slug, excerpt, cover_image, category, published, created_at, updated_at')
+			.eq('published', true)
+			.order('created_at', { ascending: false })
+			.limit(20);
 
-		if (!res.ok) {
-			throw new Error('获取文章失败');
+		if (error) {
+			console.error('获取文章错误:', error);
+			return [];
 		}
 
-		const data = await res.json();
-		return data.articles || [];
+		return data || [];
 	} catch (error) {
 		console.error('获取文章错误:', error);
 		return [];
