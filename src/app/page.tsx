@@ -5,6 +5,9 @@ import { zhCN } from 'date-fns/locale';
 import { ARTICLE_CATEGORIES, getCategoryConfig, type ArticleCategory } from '@/lib/constants';
 import { getSupabaseClient } from '@/storage/database/supabase-client';
 
+// ISR: 每 60 秒自动重新生成页面，让首页能自动显示最新的文章更新
+export const revalidate = 60;
+
 export const metadata: Metadata = {
 	title: '混沌中的探路者 - 用敏感捕捉信号，用跨界解码规律',
 	description: '用多学科之眼，翻译混沌世界；用实战之躯，验证底层规律。',
