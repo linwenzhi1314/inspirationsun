@@ -102,7 +102,8 @@ export default function AdminPage() {
         }
       }
     } catch (err) {
-      setInitError('初始化请求失败');
+      console.error('初始化数据库失败:', err);
+      setInitError(err instanceof Error ? err.message : '初始化请求失败，请检查网络连接');
     } finally {
       setInitLoading(false);
     }
