@@ -25,6 +25,47 @@ interface Article {
 	updated_at: string;
 }
 
+async function getHomeContent() {
+	try {
+		const client = getSupabaseClient();
+		const { data, error } = await client
+			.from('settings')
+			.select('value')
+			.eq('key', 'page_home')
+			.single();
+
+		if (error || !data) {
+			// 返回默认内容
+			return {
+				title: '混沌中的探路者',
+				tagline: '用敏感捕捉信号，用跨界解码规律',
+				subtitle: '用实战之躯，验证底层规律',
+				description: '混沌直觉的系统化生存——一个高敏感跨界者的认知实验手册',
+				layers: [
+					{ icon: '🌊', title: '高敏感体质', description: '能捕捉到别人忽略的信号' },
+					{ icon: '🔮', title: '跨界整合者', description: '融合物理、心理、行为经济学的"元认知"框架' },
+					{ icon: '⚡', title: '直觉逆袭者', description: '混沌直觉+系统验证，在实战中赚到过钱' },
+				],
+			};
+		}
+
+		return JSON.parse(data.value);
+	} catch (error) {
+		console.error('获取首页内容错误:', error);
+		return {
+			title: '混沌中的探路者',
+			tagline: '用敏感捕捉信号，用跨界解码规律',
+			subtitle: '用实战之躯，验证底层规律',
+			description: '混沌直觉的系统化生存——一个高敏感跨界者的认知实验手册',
+			layers: [
+				{ icon: '🌊', title: '高敏感体质', description: '能捕捉到别人忽略的信号' },
+				{ icon: '🔮', title: '跨界整合者', description: '融合物理、心理、行为经济学的"元认知"框架' },
+				{ icon: '⚡', title: '直觉逆袭者', description: '混沌直觉+系统验证，在实战中赚到过钱' },
+			],
+		};
+	}
+}
+
 async function getArticles(): Promise<Article[]> {
 	try {
 		// 直接使用 Supabase Client 获取已发布文章
@@ -49,7 +90,10 @@ async function getArticles(): Promise<Article[]> {
 }
 
 export default async function Home() {
-	const articles = await getArticles();
+	const [articles, homeContent] = await Promise.all([
+		getArticles(),
+		getHomeContent(),
+	]);
 
 	// 按分类组织文章
 	const articlesByCategory = ARTICLE_CATEGORIES.reduce((acc, cat) => {
@@ -64,7 +108,7 @@ export default async function Home() {
 				<div className="max-w-5xl mx-auto px-6 py-20">
 					{/* 顶部导航 */}
 					<nav className="flex items-center justify-between mb-16">
-						<div className="text-xl font-bold">混沌中的探路者</div>
+						<div className="text-xl font-bold">{homeContent.title}</div>
 						<div className="flex gap-6">
 							<Link href="/" className="text-gray-300 hover:text-white transition-colors">
 								首页
@@ -78,40 +122,28 @@ export default async function Home() {
 					{/* 核心标语 */}
 					<div className="text-center mb-16">
 						<h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
-							用敏感捕捉信号，用跨界解码规律
+							{homeContent.tagline}
 						</h1>
 						<p className="text-xl text-gray-300 mb-8">
-							用实战之躯，验证底层规律
+							{homeContent.subtitle}
 						</p>
 						<div className="inline-flex items-center px-4 py-2 bg-white/10 rounded-full text-sm">
 							<span className="mr-2">🎯</span>
-							混沌直觉的系统化生存——一个高敏感跨界者的认知实验手册
+							{homeContent.description}
 						</div>
 					</div>
 
 					{/* 三个层次展示 */}
 					<div className="grid md:grid-cols-3 gap-8">
-						<div className="bg-white/5 backdrop-blur-sm rounded-lg p-6 border border-white/10">
-							<div className="text-3xl mb-3">🌊</div>
-							<h3 className="text-lg font-semibold mb-2">高敏感体质</h3>
-							<p className="text-gray-400 text-sm">
-								捕捉别人忽略的"信号"——气场、情绪、能量波动
-							</p>
-						</div>
-						<div className="bg-white/5 backdrop-blur-sm rounded-lg p-6 border border-white/10">
-							<div className="text-3xl mb-3">🔮</div>
-							<h3 className="text-lg font-semibold mb-2">跨界整合者</h3>
-							<p className="text-gray-400 text-sm">
-								融合物理、心理、行为经济学的"元认知"框架
-							</p>
-						</div>
-						<div className="bg-white/5 backdrop-blur-sm rounded-lg p-6 border border-white/10">
-							<div className="text-3xl mb-3">⚡</div>
-							<h3 className="text-lg font-semibold mb-2">直觉逆袭者</h3>
-							<p className="text-gray-400 text-sm">
-								混沌直觉+系统验证，在实战中赚到过钱
-							</p>
-						</div>
+						{homeContent.layers?.map((layer: { icon: string; title: string; description: string }, index: number) => (
+							<div key={index} className="bg-white/5 backdrop-blur-sm rounded-lg p-6 border border-white/10">
+								<div className="text-3xl mb-3">{layer.icon}</div>
+								<h3 className="text-lg font-semibold mb-2">{layer.title}</h3>
+								<p className="text-gray-400 text-sm">
+									{layer.description}
+								</p>
+							</div>
+						))}
 					</div>
 				</div>
 			</header>
