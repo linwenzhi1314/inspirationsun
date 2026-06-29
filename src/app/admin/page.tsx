@@ -38,9 +38,9 @@ export default function AdminPage() {
       name: '首页',
       path: '/',
       description: '展示最新文章和分类导航',
-      editable: false,
+      editable: true,
       icon: '🏠',
-      editPath: '',
+      editPath: '/admin/pages/home',
     },
     {
       name: '关于我',
