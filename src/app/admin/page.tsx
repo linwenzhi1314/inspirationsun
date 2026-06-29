@@ -46,10 +46,9 @@ export default function AdminPage() {
       name: '关于我',
       path: '/about',
       description: '个人介绍和博客定位说明',
-      editable: true,
-      file: 'src/app/about/page.tsx',
+      editable: false,
       icon: '👤',
-      editPath: '/admin/pages/about',
+      editPath: '',
     },
     {
       name: '分类页面',
