@@ -237,10 +237,10 @@ export default async function AboutPage() {
 					</div>
 				</div>
 
-			{/* 我的联系方式 */}
+			{/* 联系方式 */}
 			<div className="mb-16">
 				<h2 className="text-2xl font-bold text-gray-900 mb-6">
-					我的联系方式
+					联系方式
 				</h2>
 				<div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-6">
 					<div className="grid md:grid-cols-2 gap-6">
