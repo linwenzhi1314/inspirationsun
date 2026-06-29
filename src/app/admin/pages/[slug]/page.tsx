@@ -56,6 +56,11 @@ const PAGE_CONFIG: Record<string, { name: string; defaultContent: PageContent }>
           icon: '📚',
           title: '我的经历',
           content: '**看过的书**\n艾菲《直击本质》、《道德经》、《素书》、《孙子兵法》.....\n\n**走过的路**\n重庆、荆州、潮州、福州、泉州、厦门、莆田\n\n**看过的风景**\n三峡、武当山、湄洲岛'
+        },
+        {
+          icon: '📬',
+          title: '我的联系方式',
+          content: '**邮箱**\nlinwenzhi1314@gmail.com\n\n**微信**\nlinwenzhi1314\n\n**Twitter/X**\n@linwenzhi1314\n\n**网站**\ninspirationsun.com'
         }
       ],
       cta: {

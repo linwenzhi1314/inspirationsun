@@ -231,6 +231,57 @@ export default async function AboutPage() {
 					</div>
 				</div>
 
+			{/* 我的联系方式 */}
+			<div className="mb-16">
+				<h2 className="text-2xl font-bold text-gray-900 mb-6">
+					我的联系方式
+				</h2>
+				<div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-6">
+					<div className="grid md:grid-cols-2 gap-6">
+						<div className="flex items-center gap-3">
+							<span className="text-2xl">📧</span>
+							<div>
+								<h3 className="font-semibold text-gray-900">邮箱</h3>
+								<p className="text-gray-600 text-sm">
+									{content?.contact?.email || 'linwenzhi1314@gmail.com'}
+								</p>
+							</div>
+						</div>
+						<div className="flex items-center gap-3">
+							<span className="text-2xl">💬</span>
+							<div>
+								<h3 className="font-semibold text-gray-900">微信</h3>
+								<p className="text-gray-600 text-sm">
+									{content?.contact?.wechat || 'linwenzhi1314'}
+								</p>
+							</div>
+						</div>
+						<div className="flex items-center gap-3">
+							<span className="text-2xl">🐦</span>
+							<div>
+								<h3 className="font-semibold text-gray-900">Twitter/X</h3>
+								<p className="text-gray-600 text-sm">
+									<a href={content?.contact?.twitter || 'https://x.com/linwenzhi1314'} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+										@linwenzhi1314
+									</a>
+								</p>
+							</div>
+						</div>
+						<div className="flex items-center gap-3">
+							<span className="text-2xl">🌐</span>
+							<div>
+								<h3 className="font-semibold text-gray-900">网站</h3>
+								<p className="text-gray-600 text-sm">
+									<a href={content?.contact?.website || 'https://inspirationsun.com'} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+										inspirationsun.com
+									</a>
+								</p>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
 				{/* CTA */}
 				<div className="text-center">
 					<div className="bg-gradient-to-r from-gray-900 to-gray-700 rounded-lg p-8 text-white">
