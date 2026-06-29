@@ -24,13 +24,42 @@ export default function AdminPage() {
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [articles, setArticles] = useState<Article[]>([]);
-  const [activeTab, setActiveTab] = useState<'published' | 'drafts'>('published');
+  const [activeTab, setActiveTab] = useState<'published' | 'drafts' | 'pages'>('published');
   const [loadingArticles, setLoadingArticles] = useState(false);
   const [dbNeedsInit, setDbNeedsInit] = useState(false);
   const [pat, setPat] = useState('');
   const [initLoading, setInitLoading] = useState(false);
   const [initError, setInitError] = useState('');
   const [initSql, setInitSql] = useState('');
+
+  // 页面列表
+  const sitePages = [
+    {
+      name: '首页',
+      path: '/',
+      description: '展示最新文章和分类导航',
+      editable: false,
+    },
+    {
+      name: '关于我',
+      path: '/about',
+      description: '个人介绍和博客定位说明',
+      editable: true,
+      file: 'src/app/about/page.tsx',
+    },
+    {
+      name: '分类页面',
+      path: '/categories/[category]',
+      description: '按分类显示文章列表（动态页面）',
+      editable: false,
+    },
+    {
+      name: '文章详情页',
+      path: '/articles/[slug]',
+      description: '显示文章详情（动态页面）',
+      editable: false,
+    },
+  ];
 
   // 检查登录状态
   useEffect(() => {
@@ -326,6 +355,16 @@ export default function AdminPage() {
           >
             草稿箱 ({articles.filter(a => !a.published).length})
           </button>
+          <button
+            onClick={() => setActiveTab('pages')}
+            className={`px-6 py-2 rounded-md transition-colors ${
+              activeTab === 'pages'
+                ? 'bg-purple-600 text-white'
+                : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+            }`}
+          >
+            页面管理
+          </button>
         </div>
 
         {/* 文章列表 */}
@@ -508,6 +547,54 @@ GRANT ALL ON settings TO service_role;`}</pre>
             </div>
           )}
         </div>
+
+        {/* 页面管理 */}
+        {activeTab === 'pages' && (
+          <div className="bg-white rounded-lg shadow">
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h2 className="text-lg font-semibold text-gray-900">网站页面列表</h2>
+              <p className="text-sm text-gray-500 mt-1">管理网站的所有公开页面</p>
+            </div>
+            <div className="divide-y divide-gray-200">
+              {sitePages.map((page) => (
+                <div key={page.path} className="px-6 py-4 flex items-center justify-between hover:bg-gray-50">
+                  <div className="flex items-center gap-4">
+                    <span className="text-2xl">{page.icon}</span>
+                    <div>
+                      <h3 className="font-medium text-gray-900">{page.name}</h3>
+                      <div className="flex items-center gap-2 text-sm text-gray-500 mt-1">
+                        <span className="font-mono bg-gray-100 px-2 py-0.5 rounded">{page.path}</span>
+                        <span>•</span>
+                        <span>{page.description}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Link
+                      href={page.path}
+                      target="_blank"
+                      className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors flex items-center gap-1"
+                      title="查看页面"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      </svg>
+                      查看
+                    </Link>
+                    {page.editPath && (
+                      <Link
+                        href={page.editPath}
+                        className="px-3 py-1.5 text-sm bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
+                      >
+                        编辑
+                      </Link>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
