@@ -267,9 +267,11 @@ export default async function AboutPage() {
 							<div>
 								<h3 className="font-semibold text-gray-900">Twitter/X</h3>
 								<p className="text-gray-600 text-sm">
-									<a href={content?.contact?.twitter || 'https://x.com/linwenzhi1314'} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-										@linwenzhi1314
-									</a>
+									{content?.contact?.twitter ? (
+										<a href={content.contact.twitter} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+											@{content.contact.twitter.replace('https://x.com/', '').replace('https://twitter.com/', '')}
+										</a>
+									}
 								</p>
 							</div>
 						</div>
@@ -278,9 +280,15 @@ export default async function AboutPage() {
 							<div>
 								<h3 className="font-semibold text-gray-900">网站</h3>
 								<p className="text-gray-600 text-sm">
-									<a href={content?.contact?.website || 'https://inspirationsun.com'} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-										inspirationsun.com
-									</a>
+									{content?.contact?.website ? (
+										<a href={content.contact.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+											{content.contact.website.replace('https://', '').replace('http://', '').replace(/\/$/, '')}
+										</a>
+									) : (
+										<a href="https://inspirationsun.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+											inspirationsun.com
+										</a>
+									)}
 								</p>
 							</div>
 						</div>
