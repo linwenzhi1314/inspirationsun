@@ -13,6 +13,12 @@ interface PageContent {
     title: string;
     content: string;
   }>;
+  contact?: {
+    email?: string;
+    wechat?: string;
+    twitter?: string;
+    website?: string;
+  };
   cta?: {
     text: string;
     link: string;
@@ -56,13 +62,14 @@ const PAGE_CONFIG: Record<string, { name: string; defaultContent: PageContent }>
           icon: '📚',
           title: '我的经历',
           content: '**看过的书**\n艾菲《直击本质》、《道德经》、《素书》、《孙子兵法》.....\n\n**走过的路**\n重庆、荆州、潮州、福州、泉州、厦门、莆田\n\n**看过的风景**\n三峡、武当山、湄洲岛'
-        },
-        {
-          icon: '📬',
-          title: '我的联系方式',
-          content: '**邮箱**\nlinwenzhi1314@gmail.com\n\n**微信**\nlinwenzhi1314\n\n**Twitter/X**\n@linwenzhi1314\n\n**网站**\ninspirationsun.com'
         }
       ],
+      contact: {
+        email: 'linwenzhi1314@gmail.com',
+        wechat: 'linwenzhi1314',
+        twitter: 'https://x.com/linwenzhi1314',
+        website: 'https://inspirationsun.com'
+      },
       cta: {
         text: '让我们一起，在混沌中起舞',
         link: '/'
@@ -291,6 +298,77 @@ export default function EditPage() {
                 </div>
               </div>
             ))}
+          </div>
+        </section>
+
+        {/* 联系方式 */}
+        <section className="bg-white rounded-xl shadow-sm p-6 mb-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">联系方式</h2>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                邮箱
+              </label>
+              <input
+                type="email"
+                value={content.contact?.email || ''}
+                onChange={e => setContent({ 
+                  ...content, 
+                  contact: { ...content.contact!, email: e.target.value } 
+                })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="your@email.com"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                微信
+              </label>
+              <input
+                type="text"
+                value={content.contact?.wechat || ''}
+                onChange={e => setContent({ 
+                  ...content, 
+                  contact: { ...content.contact!, wechat: e.target.value } 
+                })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="微信号"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Twitter/X 链接
+              </label>
+              <input
+                type="url"
+                value={content.contact?.twitter || ''}
+                onChange={e => setContent({ 
+                  ...content, 
+                  contact: { ...content.contact!, twitter: e.target.value } 
+                })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="https://x.com/username"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                网站链接
+              </label>
+              <input
+                type="url"
+                value={content.contact?.website || ''}
+                onChange={e => setContent({ 
+                  ...content, 
+                  contact: { ...content.contact!, website: e.target.value } 
+                })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="https://yourwebsite.com"
+              />
+            </div>
           </div>
         </section>
 
