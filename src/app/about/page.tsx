@@ -172,7 +172,7 @@ export default async function AboutPage() {
 						我的案例
 					</h2>
 					<div className="space-y-4">
-						{(content?.cases || [
+						{((content?.cases as Array<{ icon: string; title: string; description: string; color?: string; link?: string }>) || [
 							{ icon: '📝', title: '公众号：林生观天下', description: '主题：关于写国家政策，产业经济的内容', color: 'border-purple-500' },
 							{ icon: '🎵', title: '音乐创作：《规矩》《我就这样》', description: '用AI创作属于自己的音乐', color: 'border-pink-500' },
 							{ icon: '🚀', title: '项目：AI创业项目搜索插件', description: '网站：aistartupscout.com，AI创业项目智能分析师', link: 'https://aistartupscout.com', color: 'border-green-500' },
