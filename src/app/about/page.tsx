@@ -1,12 +1,81 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { createClient } from '@supabase/supabase-js';
 
 export const metadata: Metadata = {
 	title: '关于我 - 混沌中的探路者',
 	description: '我靠直觉赚过钱，也用逻辑赔过钱。最终我发现，真正的自洽不是二选一，而是让敏感和理性在混沌中共舞。',
 };
 
-export default function AboutPage() {
+// 使用 ISR，每 60 秒重新验证
+export const revalidate = 60;
+
+const supabaseUrl = process.env.COZE_SUPABASE_URL!;
+const supabaseAnonKey = process.env.COZE_SUPABASE_ANON_KEY!;
+
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+interface AboutContent {
+	title?: string;
+	subtitle?: string;
+	intro?: string;
+	whoAmI?: string;
+	traits?: Array<{ icon: string; level: string; name: string; description: string }>;
+	cases?: Array<{ icon: string; title: string; description: string; link?: string }>;
+	experiences?: {
+		books?: string;
+		places?: string;
+		scenery?: string;
+	};
+	customHtml?: string;
+}
+
+async function getAboutContent(): Promise<AboutContent | null> {
+	try {
+		const { data, error } = await supabase
+			.from('settings')
+			.select('value')
+			.eq('key', 'page_about')
+			.single();
+
+		if (error || !data) {
+			return null;
+		}
+
+		return JSON.parse(data.value);
+	} catch {
+		return null;
+	}
+}
+
+export default async function AboutPage() {
+	const content = await getAboutContent();
+
+	// 如果有自定义 HTML，直接渲染
+	if (content?.customHtml) {
+		return (
+			<div className="min-h-screen bg-white">
+				<header className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
+					<div className="max-w-4xl mx-auto px-6 py-8">
+						<div className="flex items-center justify-between">
+							<Link href="/" className="text-xl font-bold hover:text-gray-300 transition-colors">
+								混沌中的探路者
+							</Link>
+							<nav className="flex gap-6">
+								<Link href="/" className="text-gray-300 hover:text-white transition-colors">首页</Link>
+								<Link href="/about" className="text-white font-medium">关于我</Link>
+							</nav>
+						</div>
+					</div>
+				</header>
+				<main className="max-w-3xl mx-auto px-6 py-16">
+					<div dangerouslySetInnerHTML={{ __html: content.customHtml }} />
+				</main>
+			</div>
+		);
+	}
+
+	// 默认内容
 	return (
 		<div className="min-h-screen bg-white">
 			{/* 头部导航 */}
@@ -39,11 +108,11 @@ export default function AboutPage() {
 				{/* 核心定位 */}
 				<div className="mb-16">
 					<h1 className="text-4xl font-bold text-gray-900 mb-6">
-						关于我
+						{content?.title || '关于我'}
 					</h1>
 					<div className="bg-gray-50 rounded-lg p-8 border-l-4 border-blue-500">
 						<p className="text-xl text-gray-800 leading-relaxed italic">
-							"我靠直觉赚过钱，也用逻辑赔过钱。最终我发现，真正的自洽不是二选一，而是让敏感和理性在混沌中共舞。这里是我为这套舞蹈写下的所有舞谱。"
+							{content?.subtitle || '"我靠直觉赚过钱，也用逻辑赔过钱。最终我发现，真正的自洽不是二选一，而是让敏感和理性在混沌中共舞。这里是我为这套舞蹈写下的所有舞谱。"'}
 						</p>
 					</div>
 				</div>
@@ -55,7 +124,7 @@ export default function AboutPage() {
 					</h2>
 					<div className="prose prose-lg text-gray-700 space-y-4">
 						<p>
-							一个用多学科之眼翻译混沌世界，用实战之躯验证底层规律的人。
+							{content?.intro || '一个用多学科之眼翻译混沌世界，用实战之躯验证底层规律的人。'}
 						</p>
 						<p>
 							我不是先知，也不是大师。我只是一个在混沌中摸索的普通人，但我有一样特殊的东西：<strong>高敏感体质</strong>。
@@ -75,50 +144,25 @@ export default function AboutPage() {
 						我的独特性
 					</h2>
 					<div className="space-y-6">
-						{/* 底层 */}
-						<div className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
-							<div className="flex items-start gap-4">
-								<div className="text-3xl">🌊</div>
-								<div>
-									<h3 className="text-lg font-semibold text-gray-900 mb-2">
-										底层（感受层）：高敏感体质
-									</h3>
-									<p className="text-gray-600">
-										你能捕捉到别人忽略的"信号"——气场、情绪、能量波动。这不是玄学，这是镜像神经元和边缘系统高度敏感的产物。
-									</p>
+						{(content?.traits || [
+							{ icon: '🌊', level: '底层（感受层）', name: '高敏感体质', description: '你能捕捉到别人忽略的"信号"——气场、情绪、能量波动。这不是玄学，这是镜像神经元和边缘系统高度敏感的产物。' },
+							{ icon: '🔮', level: '中层（认知层）', name: '跨界整合者', description: '你不满足于单学科解释，用物理、心理、生理、行为经济学融合出"元认知"。你相信每个混沌现象背后都有可被拆解的多维结构。' },
+							{ icon: '⚡', level: '顶层（验证层）', name: '直觉逆袭者', description: '你的理论不是空谈，你在股票/实战中靠"混沌直觉+系统验证"赚到过钱，证明你的认知框架是能打的。你既懂直觉的价值，又懂逻辑的严谨。' }
+						]).map((trait, index) => (
+							<div key={index} className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+								<div className="flex items-start gap-4">
+									<div className="text-3xl">{trait.icon}</div>
+									<div>
+										<h3 className="text-lg font-semibold text-gray-900 mb-2">
+											{trait.level}：{trait.name}
+										</h3>
+										<p className="text-gray-600">
+											{trait.description}
+										</p>
+									</div>
 								</div>
 							</div>
-						</div>
-
-						{/* 中层 */}
-						<div className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
-							<div className="flex items-start gap-4">
-								<div className="text-3xl">🔮</div>
-								<div>
-									<h3 className="text-lg font-semibold text-gray-900 mb-2">
-										中层（认知层）：跨界整合者
-									</h3>
-									<p className="text-gray-600">
-										你不满足于单学科解释，用物理、心理、生理、行为经济学融合出"元认知"。你相信每个混沌现象背后都有可被拆解的多维结构。
-									</p>
-								</div>
-							</div>
-						</div>
-
-						{/* 顶层 */}
-						<div className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
-							<div className="flex items-start gap-4">
-								<div className="text-3xl">⚡</div>
-								<div>
-									<h3 className="text-lg font-semibold text-gray-900 mb-2">
-										顶层（验证层）：直觉逆袭者
-									</h3>
-									<p className="text-gray-600">
-										你的理论不是空谈，你在股票/实战中靠"混沌直觉+系统验证"赚到过钱，证明你的认知框架是能打的。你既懂直觉的价值，又懂逻辑的严谨。
-									</p>
-								</div>
-							</div>
-						</div>
+						))}
 					</div>
 				</div>
 
@@ -128,44 +172,32 @@ export default function AboutPage() {
 						我的案例
 					</h2>
 					<div className="space-y-4">
-						<div className="bg-gray-50 rounded-lg p-6 border-l-4 border-purple-500">
-							<div className="flex items-start gap-3">
-								<span className="text-2xl">📝</span>
-								<div>
-									<h3 className="font-semibold text-gray-900">公众号：林生观天下</h3>
-									<p className="text-gray-600 text-sm mt-1">主题：关于写国家政策，产业经济的内容</p>
+						{(content?.cases || [
+							{ icon: '📝', title: '公众号：林生观天下', description: '主题：关于写国家政策，产业经济的内容', color: 'border-purple-500' },
+							{ icon: '🎵', title: '音乐创作：《规矩》《我就这样》', description: '用AI创作属于自己的音乐', color: 'border-pink-500' },
+							{ icon: '🚀', title: '项目：AI创业项目搜索插件', description: '网站：aistartupscout.com，AI创业项目智能分析师', link: 'https://aistartupscout.com', color: 'border-green-500' },
+							{ icon: '✨', title: '未完待续...', description: '', color: 'border-gray-400' }
+						]).map((caseItem, index) => (
+							<div key={index} className={`bg-gray-50 rounded-lg p-6 border-l-4 ${caseItem.color || 'border-blue-500'}`}>
+								<div className="flex items-start gap-3">
+									<span className="text-2xl">{caseItem.icon}</span>
+									<div>
+										<h3 className="font-semibold text-gray-900">{caseItem.title}</h3>
+										<p className="text-gray-600 text-sm mt-1">
+											{caseItem.description}
+											{caseItem.link && (
+												<>
+													{' '}
+													<a href={caseItem.link} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+														{caseItem.link}
+													</a>
+												</>
+											)}
+										</p>
+									</div>
 								</div>
 							</div>
-						</div>
-						<div className="bg-gray-50 rounded-lg p-6 border-l-4 border-pink-500">
-							<div className="flex items-start gap-3">
-								<span className="text-2xl">🎵</span>
-								<div>
-									<h3 className="font-semibold text-gray-900">音乐创作：《规矩》《我就这样》</h3>
-									<p className="text-gray-600 text-sm mt-1">用AI创作属于自己的音乐</p>
-								</div>
-							</div>
-						</div>
-						<div className="bg-gray-50 rounded-lg p-6 border-l-4 border-green-500">
-							<div className="flex items-start gap-3">
-								<span className="text-2xl">🚀</span>
-								<div>
-									<h3 className="font-semibold text-gray-900">项目：AI创业项目搜索插件</h3>
-									<p className="text-gray-600 text-sm mt-1">
-										网站：<a href="https://aistartupscout.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">aistartupscout.com</a>
-										，AI创业项目智能分析师
-									</p>
-								</div>
-							</div>
-						</div>
-						<div className="bg-gray-50 rounded-lg p-6 border-l-4 border-gray-400">
-							<div className="flex items-start gap-3">
-								<span className="text-2xl">✨</span>
-								<div>
-									<h3 className="font-semibold text-gray-900">未完待续...</h3>
-								</div>
-							</div>
-						</div>
+						))}
 					</div>
 				</div>
 
@@ -179,109 +211,44 @@ export default function AboutPage() {
 							<div className="text-3xl mb-3">📚</div>
 							<h3 className="font-semibold text-gray-900 mb-3">看过的书</h3>
 							<p className="text-gray-600 text-sm leading-relaxed">
-								艾菲《直击本质》、《道德经》、《素书》、《孙子兵法》.....
+								{content?.experiences?.books || '艾菲《直击本质》、《道德经》、《素书》、《孙子兵法》.....'}
 							</p>
 						</div>
 						<div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-lg p-6">
 							<div className="text-3xl mb-3">🛤️</div>
 							<h3 className="font-semibold text-gray-900 mb-3">走过的路</h3>
 							<p className="text-gray-600 text-sm leading-relaxed">
-								重庆、荆州、潮州、福州、泉州、厦门、莆田
+								{content?.experiences?.places || '重庆、荆州、潮州、福州、泉州、厦门、莆田'}
 							</p>
 						</div>
 						<div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-6">
 							<div className="text-3xl mb-3">🏔️</div>
 							<h3 className="font-semibold text-gray-900 mb-3">看过的风景</h3>
 							<p className="text-gray-600 text-sm leading-relaxed">
-								三峡、武当山、湄洲岛
+								{content?.experiences?.scenery || '三峡、武当山、湄洲岛'}
 							</p>
 						</div>
 					</div>
 				</div>
 
-				{/* 为什么做这个网站 */}
-				<div className="mb-16">
-					<h2 className="text-2xl font-bold text-gray-900 mb-6">
-						为什么做这个网站？
-					</h2>
-					<div className="prose prose-lg text-gray-700 space-y-4">
-						<p>
-							因为我发现，<strong>真正的自洽不是二选一</strong>。
-						</p>
-						<p>
-							很多人要么敏感但混乱，要么跨界但空谈，要么有钱但没思想。而我三样全占——这正是我的不可替代性。
-						</p>
-						<p>
-							这个网站，是我<strong>混沌直觉的系统化生存手册</strong>。我会记录：
-						</p>
-						<ul className="list-disc list-inside space-y-2 ml-4">
-							<li>我感知到的"说不清道不明"的直觉瞬间</li>
-							<li>用多学科框架拆解混沌现象的过程</li>
-							<li>基于理论做的现实"下注"及其结果</li>
-							<li>从混沌走向自洽的迭代轨迹</li>
-						</ul>
-					</div>
-				</div>
-
-				{/* 核心命题 */}
-				<div className="mb-16">
-					<h2 className="text-2xl font-bold text-gray-900 mb-6">
-						我的年度命题
-					</h2>
-					<div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg p-8">
-						<p className="text-xl text-gray-800 font-medium text-center mb-6">
-							"混沌直觉的系统化生存——一个高敏感跨界者的认知实验手册"
-						</p>
-						<div className="grid md:grid-cols-4 gap-4 text-center">
-							<div className="bg-white rounded-lg p-4">
-								<div className="text-2xl mb-2">📡</div>
-								<div className="text-sm font-medium text-gray-900">捕捉混沌</div>
-								<div className="text-xs text-gray-500 mt-1">5分钟</div>
-							</div>
-							<div className="bg-white rounded-lg p-4">
-								<div className="text-2xl mb-2">🔬</div>
-								<div className="text-sm font-medium text-gray-900">多学科拆解</div>
-								<div className="text-xs text-gray-500 mt-1">15分钟</div>
-							</div>
-							<div className="bg-white rounded-lg p-4">
-								<div className="text-2xl mb-2">⚗️</div>
-								<div className="text-sm font-medium text-gray-900">验证与落子</div>
-								<div className="text-xs text-gray-500 mt-1">10分钟</div>
-							</div>
-							<div className="bg-white rounded-lg p-4">
-								<div className="text-2xl mb-2">📖</div>
-								<div className="text-sm font-medium text-gray-900">形成笔记</div>
-								<div className="text-xs text-gray-500 mt-1">输出</div>
-							</div>
-						</div>
-					</div>
-				</div>
-
 				{/* CTA */}
-				<div className="text-center py-12 border-t border-gray-200">
-					<p className="text-lg text-gray-700 mb-6">
-						想知道我如何在混沌中找到秩序？
-					</p>
-					<Link
-						href="/"
-						className="inline-flex items-center px-6 py-3 bg-gray-900 text-white rounded-md hover:bg-gray-800 transition-colors"
-					>
-						开始阅读我的实验笔记
-						<svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-						</svg>
-					</Link>
+				<div className="text-center">
+					<div className="bg-gradient-to-r from-gray-900 to-gray-700 rounded-lg p-8 text-white">
+						<h2 className="text-2xl font-bold mb-4">
+							让我们一起，在混沌中起舞
+						</h2>
+						<p className="text-gray-300 mb-6">
+							如果你也是那个"既敏感又理性，既直觉又系统"的人，欢迎来到这里。
+						</p>
+						<Link
+							href="/"
+							className="inline-block bg-white text-gray-900 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+						>
+							开始探索
+						</Link>
+					</div>
 				</div>
 			</main>
-
-			{/* 页脚 */}
-			<footer className="border-t border-gray-200 bg-gray-50">
-				<div className="max-w-4xl mx-auto px-6 py-8 text-center">
-					<p className="text-gray-500 text-sm">
-						© 2024 混沌中的探路者. All rights reserved.
-					</p>
-				</div>
-			</footer>
 		</div>
 	);
 }
