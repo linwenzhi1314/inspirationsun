@@ -39,6 +39,7 @@ export default function AdminPage() {
       path: '/',
       description: '展示最新文章和分类导航',
       editable: false,
+      icon: '🏠',
     },
     {
       name: '关于我',
@@ -46,18 +47,21 @@ export default function AdminPage() {
       description: '个人介绍和博客定位说明',
       editable: true,
       file: 'src/app/about/page.tsx',
+      icon: '👤',
     },
     {
       name: '分类页面',
       path: '/categories/[category]',
       description: '按分类显示文章列表（动态页面）',
       editable: false,
+      icon: '📂',
     },
     {
       name: '文章详情页',
       path: '/articles/[slug]',
       description: '显示文章详情（动态页面）',
       editable: false,
+      icon: '📄',
     },
   ];
 
