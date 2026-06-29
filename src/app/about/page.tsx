@@ -127,9 +127,12 @@ export default async function AboutPage() {
 				{/* 动态渲染 sections */}
 				{content?.sections?.map((section, index) => (
 					<div key={index} className="mb-16">
-						<h2 className="text-2xl font-bold text-gray-900 mb-6">
-							{section.title}
-						</h2>
+						<div className="flex items-center gap-3 mb-6">
+							{section.icon && <span className="text-3xl">{section.icon}</span>}
+							<h2 className="text-2xl font-bold text-gray-900">
+								{section.title}
+							</h2>
+						</div>
 						<div className="prose prose-lg text-gray-700">
 							<div className="whitespace-pre-wrap">{section.content}</div>
 						</div>
