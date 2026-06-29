@@ -468,6 +468,19 @@ GRANT ALL ON settings TO service_role;`}</pre>
                       </div>
                     </div>
                     <div className="flex gap-2">
+                      {article.published && (
+                        <Link
+                          href={`/articles/${article.slug}`}
+                          target="_blank"
+                          className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors flex items-center gap-1"
+                          title="查看文章"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                          </svg>
+                          查看
+                        </Link>
+                      )}
                       {!article.published && (
                         <button
                           onClick={() => handlePublish(article.id)}
