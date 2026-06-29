@@ -271,7 +271,9 @@ export default async function AboutPage() {
 										<a href={content.contact.twitter} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
 											@{content.contact.twitter.replace('https://x.com/', '').replace('https://twitter.com/', '')}
 										</a>
-									}
+									) : (
+										<span>未设置</span>
+									)}
 								</p>
 							</div>
 						</div>
