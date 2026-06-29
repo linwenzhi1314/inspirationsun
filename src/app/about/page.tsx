@@ -27,6 +27,12 @@ interface AboutContent {
 		places?: string;
 		scenery?: string;
 	};
+	contact?: {
+		email?: string;
+		wechat?: string;
+		twitter?: string;
+		website?: string;
+	};
 	customHtml?: string;
 }
 
